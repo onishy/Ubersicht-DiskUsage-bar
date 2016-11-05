@@ -1,4 +1,4 @@
-command: "df -lk"
+command: "BLOCKSIZE=1000000 df -l"
 
 refreshFrequency: 5000
 
@@ -128,20 +128,16 @@ render: -> """
 
 update: (output, domEl) ->
 
-  usage = (kb) ->
-    mb = kb / 1024
-    usageFormat mb
-
   usageFormat = (mb) ->
-    if mb > 1024
-      gb = mb / 1024
+    if mb > 1000
+      gb = mb / 1000
       "#{parseFloat(gb.toFixed(2))}GB"
     else
       "#{parseFloat(mb.toFixed())}MB"
 
-  updateStat = (sel, usedBytes, totalBytes) ->
-    percent = (usedBytes / totalBytes * 100).toFixed(1) + "%"
-    $(domEl).find(".#{sel}").text usage(usedBytes)
+  updateStat = (sel, usedMbs, totalMbs) ->
+    percent = (usedMbs / totalMbs * 100).toFixed(1) + "%"
+    $(domEl).find(".#{sel}").text usageFormat(usedMbs)
     $(domEl).find(".bar-#{sel}").css "width", percent
 
   updateCapacity = (cap) ->
@@ -153,13 +149,13 @@ update: (output, domEl) ->
   $(domEl).find(".disk-name").text mainDisk[0]
 
   diskName = mainDisk[0]
-  totalBlocks = mainDisk[1]
-  usedBlocks = mainDisk[2]
-  availableBlocks = mainDisk[3]
+  totalMbs = mainDisk[1]
+  usedMbs = mainDisk[2]
+  availableMbs = mainDisk[3]
   capacityRatio = mainDisk[4]
 
-  $(domEl).find(".total").text usageFormat(totalBlocks / 1024)
+  $(domEl).find(".total").text usageFormat(totalMbs)
 
-  updateStat 'used', usedBlocks, totalBlocks
-  updateStat 'available', availableBlocks, totalBlocks
+  updateStat 'used', usedMbs, totalMbs
+  updateStat 'available', availableMbs, totalMbs
   updateCapacity capacityRatio
