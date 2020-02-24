@@ -2,6 +2,10 @@ command: "BLOCKSIZE=1000000 df -l"
 
 refreshFrequency: 5000
 
+# choose your main disk from df -l output
+# disk on the first line = index 1
+disk_index: 2
+
 style: """
   // Change bar height
   bar-height = 6px
@@ -22,7 +26,7 @@ style: """
   // Statistics text settings
   color #fff
   font-family Helvetica Neue
-  background rgba(#000, .5)
+  background rgba(#003, .5)
   padding 10px 10px 15px
   border-radius 5px
 
@@ -94,7 +98,7 @@ style: """
     background: rgba(#c00, .5)
 
   .bar-available
-    background: rgba(#0bf, 0)
+    background: rgba(#0bf, .0)
 
 """
 
@@ -128,23 +132,33 @@ render: -> """
 
 update: (output, domEl) ->
 
+  chooseColor = (percentage) ->
+    if percentage > 90
+      "rgba(204,0,0, .5)"
+    else if percentage > 80
+      "rgba(255,204,0, .5)"
+    else
+      "rgba(0,187,255, .5)"
+
   usageFormat = (mb) ->
     if mb > 1000
       gb = mb / 1000
       "#{parseFloat(gb.toFixed(2))}GB"
     else
-      "#{parseFloat(mb.toFixed())}MB"
+      "#{parseFloat(mb.toFixed(2))}MB"
 
   updateStat = (sel, usedMbs, totalMbs) ->
-    percent = (usedMbs / totalMbs * 100).toFixed(1) + "%"
+    percent = (usedMbs / totalMbs * 100).toFixed(1)
     $(domEl).find(".#{sel}").text usageFormat(usedMbs)
-    $(domEl).find(".bar-#{sel}").css "width", percent
-
+    $(domEl).find(".bar-#{sel}").css "width", percent + "%"
+    if sel == 'used'
+      $(domEl).find(".bar-#{sel}").css "background-color", chooseColor(percent)
+ 
   updateCapacity = (cap) ->
     $(domEl).find(".usage").text cap
 
   lines = output.split "\n"
-  mainDisk = lines[1].split(/\ +/)
+  mainDisk = lines[@disk_index].split(/\ +/)
 
   $(domEl).find(".disk-name").text mainDisk[0]
 
